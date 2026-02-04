@@ -111,47 +111,29 @@ function roll() {
 }
 
 // Core logic: calculate round result
-// NEW RULE: Start Index = Cell with ID == Sum. Then walk Sum steps.
+// TRUE RANDOM - No rigging. Dice sum determines start cell and steps.
 function calculateRoundResult(direction) {
-    const possibleSums = [];
-    for (let s = 5; s <= 30; s++) possibleSums.push(s);
-
-    // Rigging: Find sums that land on bad spots (<= 300 or trap)
-    const badSums = possibleSums.filter(s => {
-        const startIdx = CELLS.findIndex(c => c.id === s);
-        if (startIdx === -1) return false;
-
-        let dest = startIdx + (s * direction);
-        const len = CELLS.length;
-        dest = ((dest % len) + len) % len;
-
-        const prize = CELLS[dest].val;
-        return prize <= 300 || prize === -580;
-    });
-
-    let finalSum;
-    const isRigged = Math.random() < 0.9; // 90% scam rate
-
-    if (isRigged && badSums.length > 0) {
-        // Prefer common sums (13-22)
-        const commonBad = badSums.filter(s => s >= 13 && s <= 22);
-        if (commonBad.length > 0) finalSum = commonBad[Math.floor(Math.random() * commonBad.length)];
-        else finalSum = badSums[Math.floor(Math.random() * badSums.length)];
-    } else {
-        // True random
-        let tempSum = 0;
-        for (let i = 0; i < 5; i++) tempSum += Math.floor(Math.random() * 6) + 1;
-        finalSum = tempSum;
-        // Ensure sum exists on board
-        if (!CELLS.find(c => c.id === finalSum)) finalSum = 15;
+    // Roll 5 dice truly randomly
+    let sum = 0;
+    for (let i = 0; i < 5; i++) {
+        sum += Math.floor(Math.random() * 6) + 1;
     }
 
-    const startIdx = CELLS.findIndex(c => c.id === finalSum);
-    const len = CELLS.length;
-    const finalIdx = ((startIdx + (finalSum * direction)) % len + len) % len;
-    const prize = CELLS[finalIdx].val;
+    // Find start cell by matching ID to sum
+    const startIdx = CELLS.findIndex(c => c.id === sum);
 
-    return { sum: finalSum, startIdx: startIdx, endIdx: finalIdx, prize: prize };
+    // If sum doesn't exist on board (shouldn't happen for 5-30), fallback
+    if (startIdx === -1) {
+        console.warn('Sum not found on board:', sum);
+        return { sum: sum, startIdx: 0, endIdx: 0, prize: 0 };
+    }
+
+    // Calculate landing position after walking 'sum' steps
+    const len = CELLS.length;
+    const endIdx = ((startIdx + (sum * direction)) % len + len) % len;
+    const prize = CELLS[endIdx].val;
+
+    return { sum: sum, startIdx: startIdx, endIdx: endIdx, prize: prize };
 }
 
 function finalizeSteps(diceEls) {
