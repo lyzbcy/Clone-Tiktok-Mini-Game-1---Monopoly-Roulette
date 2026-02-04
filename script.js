@@ -99,82 +99,9 @@ function roll() {
 
     let count = 0;
     const rollInt = setInterval(() => {
-        diceEls.forEach(d => d.innerText = Math.floor(Math.random() * 6) + 1);
-        sfxRoll();
-        count++;
-        if (count > 15) {
-            clearInterval(rollInt);
-            diceEls.forEach(d => d.classList.remove('shaking'));
-            finalizeSteps(diceEls);
-        }
-    }, 100);
-}
-
-// Core logic: calculate round result
-// TRUE RANDOM - No rigging. Dice sum determines start cell and steps.
-function calculateRoundResult(direction) {
-    // Roll 5 dice truly randomly
-    let sum = 0;
-    for (let i = 0; i < 5; i++) {
-        sum += Math.floor(Math.random() * 6) + 1;
-    }
-
-    // Find start cell by matching ID to sum
-    const startIdx = CELLS.findIndex(c => c.id === sum);
-
-    // If sum doesn't exist on board (shouldn't happen for 5-30), fallback
-    if (startIdx === -1) {
-        console.warn('Sum not found on board:', sum);
-        return { sum: sum, startIdx: 0, endIdx: 0, prize: 0 };
-    }
-
-    // Calculate landing position after walking 'sum' steps
-    const len = CELLS.length;
-    const endIdx = ((startIdx + (sum * direction)) % len + len) % len;
-    const prize = CELLS[endIdx].val;
-
-    return { sum: sum, startIdx: startIdx, endIdx: endIdx, prize: prize };
-}
-
-function finalizeSteps(diceEls) {
-    const res = calculateRoundResult(state.dir);
-    const finalSum = res.sum;
-
-    // Distribute dice values
-    let remain = finalSum - 5;
-    let vals = [1, 1, 1, 1, 1];
-    while (remain > 0) {
-        let r = Math.floor(Math.random() * 5);
-        if (vals[r] < 6) {
-            vals[r]++;
-            remain--;
-        }
-    }
-    diceEls.forEach((d, i) => d.innerText = vals[i]);
-
-    state.currIdx = res.startIdx;
-
-    document.getElementById('msg').innerHTML = `总点数 <b>${finalSum}</b><br>从 ${finalSum} 号格出发走 ${finalSum} 步`;
-
-    // Show Token at start
-    const token = getOrCreateToken();
-    token.style.display = 'block';
-    document.getElementById('cell-' + res.startIdx).appendChild(token);
-
-    // Walk animation after a brief pause
-    setTimeout(() => {
-        moveToken(finalSum, res.endIdx);
-    }, 1000);
-}
-
-function getOrCreateToken() {
-    let t = document.getElementById('player-token');
-    if (!t) {
-        t = document.createElement('div');
-        t.className = 'token';
         t.id = 'player-token';
     }
-    return t;
+            return t;
 }
 
 function moveToken(steps, targetIdx) {
